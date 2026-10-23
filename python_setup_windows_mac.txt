@@ -1,0 +1,149 @@
+PYTHON DEVELOPMENT SETUP — WINDOWS & MAC
+===========================================
+
+This guide helps you install Python, uv, and a code editor, then create and activate a Python virtual environment.
+
+1. INSTALL PYTHON
+-----------------
+Download Python:
+https://www.python.org/downloads/
+
+After installation, open a NEW terminal and check the installation:
+
+    python --version
+
+On some systems, you may need to use:
+
+    python3 --version
+
+Windows tip: During installation, select “Add Python to PATH” if that option is shown.
+
+2. INSTALL uv
+-------------
+uv is a fast Python package and project manager.
+
+Official installation instructions:
+https://docs.astral.sh/uv/#__tabbed_1_1
+
+MAC (Terminal):
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+After installation, close and reopen the terminal, then verify:
+
+    uv --version
+
+WINDOWS (PowerShell):
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+After installation, close and reopen PowerShell, then verify:
+
+    uv --version
+
+If “uv is not recognized” appears, restart the terminal first. If it still fails, check that uv's install directory is included in PATH and consult the official installation guide.
+
+3. INSTALL A CODE EDITOR
+------------------------
+Visual Studio Code:
+https://code.visualstudio.com/download
+
+Cursor:
+https://cursor.com/download
+
+Install either editor and open your project folder in it.
+
+Cursor tip — switch out of Agent mode / open a new chat:
+    Mac:     Command + Shift + N
+    Windows: Ctrl + Shift + N
+
+Note: Keyboard shortcuts can vary by Cursor version and keymap.
+
+4. OPEN A PROJECT FOLDER
+------------------------
+Open VS Code or Cursor, then open the folder where you want your Python project to live.
+Open the integrated terminal:
+    VS Code/Cursor menu: Terminal → New Terminal
+
+Make sure the terminal is in your project folder before running the commands below.
+
+5. INITIALIZE A PROJECT WITH uv
+-------------------------------
+Run this once inside your project folder:
+
+    uv init
+
+This initializes the project and creates starter project files.
+
+6. CREATE A VIRTUAL ENVIRONMENT
+-------------------------------
+Mac:
+    uv venv .venv
+
+Windows:
+    uv venv .venv
+
+This creates a virtual environment in the .venv folder.
+
+7. ACTIVATE THE VIRTUAL ENVIRONMENT
+-----------------------------------
+Mac (zsh/bash):
+    source .venv/bin/activate
+
+Windows PowerShell:
+    .venv\Scripts\Activate.ps1
+
+Windows Command Prompt (cmd.exe):
+    .venv\Scripts\activate.bat
+
+When activation succeeds, the terminal prompt usually shows (.venv).
+
+If PowerShell blocks activation because of its execution policy, you can use Command Prompt and run the .bat command above, or follow Microsoft's guidance for PowerShell execution policies. Avoid changing system-wide security settings unnecessarily.
+
+8. INSTALL PACKAGES
+-------------------
+Create a file named requirements.txt in your project folder. Add one package name per line. For example:
+
+    ipykernel
+
+Save the file, then run:
+
+    uv add -r requirements.txt
+
+Important:
+- The filename is requirements.txt (plural “requirements”), not requirement.txt.
+- If you only need to install ipykernel and are not using a requirements file, run:
+
+    uv add ipykernel
+
+9. QUICK CHECK
+--------------
+With your virtual environment active, check Python:
+
+    python --version
+
+Check uv:
+
+    uv --version
+
+To see the packages installed in the project environment:
+
+    uv pip list
+
+10. COMMON TROUBLESHOOTING
+--------------------------
+• “uv is not recognized” / “command not found”:
+  Close and reopen the terminal. If needed, verify the installation and PATH using the official uv guide.
+
+• “python is not recognized” on Windows:
+  Re-run the Python installer and ensure Python is added to PATH, then reopen the terminal.
+
+• “python3: command not found” on Mac:
+  Check the Python installation at https://www.python.org/downloads/ and try opening a new Terminal window.
+
+• Activation command fails:
+  Confirm that you are in the project folder and that the .venv directory exists. Use the activation command for your terminal (PowerShell, Command Prompt, or Mac Terminal).
+
+Official references:
+Python downloads: https://www.python.org/downloads/
+uv documentation: https://docs.astral.sh/uv/
+VS Code downloads: https://code.visualstudio.com/download
+Cursor downloads: https://cursor.com/download

@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Foundations (GenAI-first)</title>
+<style>
+:root{
+  --bg:#0b0f1a; --bg2:#121830; --card:#171e3a; --card2:#1e2748; --line:#2b3664;
+  --text:#eef1ff; --muted:#9aa6d6; --a:#7c5cff; --b:#22d3ee; --c:#f472b6; --d:#fbbf24; --ok:#34d399; --bad:#fb7185;
+  --grad:linear-gradient(135deg,#7c5cff,#22d3ee);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#05070d;color:var(--text);font-family:Inter,"SF Pro Display",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform-origin:center;background:radial-gradient(1200px 700px at 85% -10%,#1b2255 0,transparent 60%),radial-gradient(900px 600px at -10% 110%,#2a1456 0,transparent 55%),var(--bg);overflow:hidden;border-radius:6px;box-shadow:0 0 80px rgba(124,92,255,.15)}
+.slide{position:absolute;inset:0;padding:64px 80px 72px;display:none;flex-direction:column}
+.slide.active{display:flex}
+.chip{position:absolute;top:26px;left:80px;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--b);font-weight:700;display:flex;gap:12px;align-items:center}
+.chip i{font-style:normal;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.35);padding:3px 10px;border-radius:99px;color:var(--b);letter-spacing:.05em}
+h1{font-size:76px;line-height:1.02;font-weight:900;letter-spacing:-.03em}
+h2{font-size:46px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin:18px 0 26px}
+h3{font-size:24px;font-weight:700;margin-bottom:8px}
+p,li{font-size:22px;line-height:1.45;color:#d5dbf7}
+.muted{color:var(--muted)}
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+ul{list-style:none}
+ul li{padding-left:28px;position:relative;margin:10px 0}
+ul li::before{content:"";position:absolute;left:4px;top:.6em;width:10px;height:10px;border-radius:3px;background:var(--grad)}
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+.card p,.card li{font-size:18px}
+.card .emoji{font-size:34px;display:block;margin-bottom:6px}
+.card.sm p{font-size:16px}
+.tag{display:inline-block;font-size:13px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(124,92,255,.2);color:#c4b5ff;margin-bottom:8px;letter-spacing:.04em}
+.tag.g{background:rgba(52,211,153,.15);color:var(--ok)}.tag.r{background:rgba(251,113,133,.15);color:var(--bad)}.tag.y{background:rgba(251,191,36,.15);color:var(--d)}.tag.c{background:rgba(34,211,238,.15);color:var(--b)}
+code,pre{font-family:"SF Mono",Menlo,Consolas,monospace}
+pre{background:#080b17;border:1px solid var(--line);border-radius:14px;padding:18px 22px;font-size:17px;line-height:1.5;color:#cfd8ff;overflow:hidden;white-space:pre}
+.k{color:#c792ea}.s{color:#a5e075}.f{color:#7fdbff}.cm{color:#6b7bb3}.n{color:#fbbf24}
+.row{display:flex;gap:18px;align-items:stretch}
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
+.node{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center;font-weight:700;font-size:18px;flex:1}
+.node small{display:block;font-weight:500;color:var(--muted);font-size:14px;margin-top:4px}
+.node.hl{background:var(--grad);border:none;color:#06101f}.node.hl small{color:#06304a}
+.arrow{color:var(--b);font-size:28px;font-weight:800}
+.timeline{display:flex;gap:0;margin-top:14px;position:relative}
+.timeline::before{content:"";position:absolute;left:0;right:0;top:19px;height:3px;background:var(--grad)}
+.tl{flex:1;padding-right:12px;position:relative}
+.tl b{display:block;width:16px;height:16px;border-radius:50%;background:var(--bg);border:4px solid var(--b);margin:12px 0 14px;position:relative}
+.tl .yr{font-weight:800;color:var(--b);font-size:20px}
+.tl p{font-size:16px;margin-top:4px;line-height:1.35}
+.bignum{font-size:64px;font-weight:900}
+.quote{border-left:5px solid var(--a);padding:6px 0 6px 22px;font-size:28px;font-weight:600;line-height:1.35}
+.stack{display:flex;flex-direction:column;gap:10px}
+.layer{border-radius:14px;padding:13px 20px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:20px;border:1px solid var(--line);background:var(--card2)}
+.layer span{font-weight:500;font-size:16px;color:var(--muted)}
+.nest{position:relative;width:520px;height:520px}
+.nest div{position:absolute;border-radius:50%;border:2px solid;display:flex;justify-content:center;font-weight:800;padding-top:16px;font-size:20px}
+.input{background:#080b17;border:1px solid var(--line);color:var(--text);border-radius:12px;padding:14px 16px;font-size:20px;width:100%;font-family:inherit}
+.tok{display:inline-block;padding:4px 8px;margin:3px 2px;border-radius:8px;font-family:"SF Mono",Menlo,monospace;font-size:20px;color:#06101f;font-weight:600}
+.bar{height:30px;border-radius:8px;background:var(--grad);transition:width .35s}
+.barrow{display:flex;align-items:center;gap:12px;margin:8px 0;font-size:20px}
+.barrow .lbl{width:150px;font-family:"SF Mono",Menlo,monospace}
+.barrow .val{width:60px;text-align:right;color:var(--muted);font-size:16px}
+.barwrap{flex:1;background:#0a0e1e;border-radius:8px}
+input[type=range]{width:100%;accent-color:var(--a)}
+button.btn{background:var(--grad);border:0;color:#06101f;font-weight:800;font-size:16px;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:inherit}
+button.btn.alt{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+.kbd{font-family:"SF Mono",monospace;background:#0a0e1e;border:1px solid var(--line);border-radius:6px;padding:1px 8px;font-size:15px}
+.take{margin-top:auto;padding:14px 20px;border-radius:14px;background:rgba(124,92,255,.12);border:1px solid rgba(124,92,255,.4);font-size:20px;font-weight:600}
+.take b{color:var(--b)}
+.agenda{display:grid;grid-template-columns:1fr 1fr;gap:10px 40px}
+.agenda div{display:flex;gap:12px;align-items:center;font-size:18px;padding:8px 0;border-bottom:1px solid var(--line)}
+.agenda em{font-style:normal;color:var(--b);font-weight:800;width:28px}
+.agenda small{margin-left:auto;color:var(--muted);font-size:15px}
+.partlabel{font-size:20px;letter-spacing:.2em;text-transform:uppercase;color:var(--c);font-weight:800}
+/* animation */
+.slide.active .st>*{animation:rise .55s both}
+.slide.active .st>*:nth-child(1){animation-delay:.05s}.slide.active .st>*:nth-child(2){animation-delay:.12s}.slide.active .st>*:nth-child(3){animation-delay:.19s}.slide.active .st>*:nth-child(4){animation-delay:.26s}.slide.active .st>*:nth-child(5){animation-delay:.33s}.slide.active .st>*:nth-child(6){animation-delay:.4s}.slide.active .st>*:nth-child(7){animation-delay:.47s}.slide.active .st>*:nth-child(8){animation-delay:.54s}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.pulse{animation:pulse 2.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(124,92,255,0)}0%{box-shadow:0 0 0 0 rgba(124,92,255,.5)}}
+/* chrome */
+#bar{position:absolute;left:0;bottom:0;height:4px;background:var(--grad);width:0;transition:width .3s;z-index:5}
+#foot{position:absolute;left:80px;right:80px;bottom:20px;display:flex;justify-content:space-between;font-size:14px;color:var(--muted);z-index:5}
+#hint{position:fixed;right:14px;bottom:10px;font-size:12px;color:#55608f;z-index:20}
+#overview{position:fixed;inset:0;background:rgba(5,7,13,.96);z-index:30;display:none;overflow:auto;padding:30px}
+#overview.on{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;align-content:start}
+#overview div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:14px;cursor:pointer;min-height:70px}
+#overview div:hover{border-color:var(--b)}
+#overview small{color:var(--b);display:block;margin-bottom:4px}
+/* print / PDF: one slide per 1280x720 page */
+@page{size:1280px 720px;margin:0}
+@media print{
+  html,body{height:auto;overflow:visible;background:var(--bg)}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #stage{position:static!important;transform:none!important;width:auto;height:auto;overflow:visible;box-shadow:none;border-radius:0;background:none}
+  .slide,.slide.active{display:flex!important;position:relative;width:1280px;height:720px;break-after:page;page-break-after:always;overflow:hidden;background:radial-gradient(1200px 700px at 85% -10%,#1b2255 0,transparent 60%),radial-gradient(900px 600px at -10% 110%,#2a1456 0,transparent 55%),var(--bg)}
+  .slide .st>*{animation:none!important}
+  #bar,#foot,#hint,#overview{display:none!important}
+  .pulse{animation:none}
+}
+
+/* ---- Day 2 additions ---- */
+.tbl{width:100%;border-collapse:collapse;font-size:17px}
+.tbl th{text-align:left;color:var(--b);font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-bottom:2px solid var(--line)}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--line);color:#d5dbf7;vertical-align:top;line-height:1.35}
+.tbl td:first-child{font-weight:700;color:var(--text);white-space:nowrap}
+.card .tbl td{padding:5px 8px}
+.pbox{background:#080b17;border:1px solid var(--line);border-left:4px solid var(--a);border-radius:12px;padding:12px 16px;font-size:16px;line-height:1.5;font-family:"SF Mono",Menlo,Consolas,monospace;color:#cfd8ff;white-space:pre-wrap}
+.pbox.out{border-left-color:var(--ok)}
+.pbox.bad{border-left-color:var(--bad)}
+.pbox .lb{display:block;font-size:11.5px;letter-spacing:.12em;color:var(--muted);font-weight:700;margin-bottom:6px;font-family:Inter,system-ui,sans-serif;white-space:normal}
+.hl-r{color:#fda4af}.hl-g{color:#86efac}.hl-y{color:#fde68a}.hl-b{color:#7be7f7}.hl-p{color:#c4b5ff}
+.num{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--grad);color:#06101f;font-weight:900;align-items:center;justify-content:center;font-size:14px;margin-right:8px}
+.qrow{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:14px 18px;margin:9px 0;background:var(--card2);border:1px solid var(--line);border-radius:12px;font-size:20px;cursor:pointer}
+.qrow b{color:var(--ok);opacity:0;transition:opacity .25s;font-size:17px;text-align:right}
+.qrow.show b{opacity:1}
+.qrow:hover{border-color:var(--b)}
+ol{font-size:18px}
+.slide .st>.take{margin-top:auto}
+
+.slide.ex::before{content:"EXAMPLE";position:absolute;top:24px;right:80px;font-size:13px;font-weight:800;letter-spacing:.16em;color:#fbbf24;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.45);padding:3px 12px;border-radius:99px}
+.slide.ex .chip{color:#fbbf24}
+.slide.ex .chip i{color:#fbbf24;border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.1)}
+.slide.ex{background:linear-gradient(180deg,rgba(251,191,36,.04),transparent 40%)}
+@media print{.slide.ex::before{display:block}}
+</style>
+</head>
+<body>
+<div id="stage">
+<section class="slide active" data-sec="Intro" data-title="Title" style="justify-content:center">
+  <div class="st"><div class="partlabel">GenAI Engineering · AI foundations</div><h1 style="margin:22px 0">AI foundations,<br><span class="grad">GenAI first</span></h1>
+  <p style="font-size:28px;max-width:900px" class="muted">Where GenAI fits, how LLMs work inside, and what they can and can't do. ML and deep learning appear only as context.</p>
+  <p style="margin-top:40px;font-size:18px" class="muted">Press <span class="kbd">→</span> to begin &nbsp;·&nbsp; <span class="kbd">O</span> overview &nbsp;·&nbsp; <span class="kbd">F</span> fullscreen &nbsp;·&nbsp; slides with an <span style="color:#fbbf24;font-weight:700">EXAMPLE</span> tag follow each concept</p></div>
+</section>
+<section class="slide" data-sec="Intro" data-title="Agenda"><div class="chip">Roadmap</div><h2>Twelve ideas, each with a worked example</h2>
+<div class="agenda st" style="grid-template-columns:1fr 1fr;margin-top:10px"><div><em>1</em>AI, ML & deep learning basics<small>the foundation</small></div><div><em>2</em>Choosing the right tool<small>AI vs ML vs DL vs GenAI</small></div><div><em>3</em>Program, train, prompt<small>the shift</small></div><div><em>4</em>Generative vs classic<small>what GenAI is</small></div><div><em>5</em>Modalities<small>text, image, audio…</small></div><div><em>6</em>LLMs & foundation models<small>one model, many tasks</small></div><div><em>7</em>Tokens & next-token prediction<small>inside an LLM</small></div><div><em>8</em>Embeddings & attention<small>inside an LLM</small></div><div><em>9</em>Training an assistant<small>pre-train → align</small></div><div><em>10</em>Context window & temperature<small>working with LLMs</small></div><div><em>11</em>Hallucination & limits<small>reality check</small></div><div><em>12</em>The GenAI app stack<small>from model to product</small></div></div></section>
+<section class="slide" data-sec="0 · AI, ML &amp; DL basics" data-title="What is AI?">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>What is <span class="grad">Artificial Intelligence</span>?</h2>
+  <div class="grid g2 st" style="grid-template-columns:1fr 1.15fr">
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center">
+      <span class="tag">DEFINITION</span>
+      <p style="font-size:24px;line-height:1.4">Software that performs tasks which normally need <b>human intelligence</b>:</p>
+      <ul style="margin-top:8px"><li>Perceiving (see, hear)</li><li>Reasoning &amp; deciding</li><li>Learning from experience</li><li>Communicating in language</li></ul>
+    </div>
+    <div class="stack">
+      <div class="layer" style="border-color:rgba(52,211,153,.6)"><div><span class="tag g">TODAY</span><br>Narrow AI (ANI)<br><span>One task or domain: chess engine, spam filter, face unlock, route planner</span></div></div>
+      <div class="layer" style="border-color:rgba(34,211,238,.6)"><div><span class="tag c">TODAY, BROADER</span><br>General-purpose assistants<br><span>LLMs handle many language tasks, yet still fail in odd ways</span></div></div>
+      <div class="layer" style="border-color:rgba(251,191,36,.6)"><div><span class="tag y">RESEARCH GOAL</span><br>AGI / ASI<br><span>Human-level across every task / beyond human. Not here yet.</span></div></div>
+    </div>
+  </div>
+  <div class="take st"><b>Remember:</b> "AI" is an umbrella word. Most of the confusion comes from not knowing which layer under the umbrella someone means.</div>
+</section>
+<section class="slide ex" data-sec="0 · AI, ML &amp; DL basics" data-title="Ex: scope of AI systems">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>How broad is each system? <span class="grad">Ask "can it switch tasks?"</span></h2>
+  <table class="tbl st">
+    <tr><th>System</th><th>Type</th><th>Great at</th><th>Can it switch tasks?</th></tr>
+    <tr><td>Chess engine</td><td>Narrow AI</td><td>Chess, beyond any human</td><td>No: can't even book a hotel</td></tr>
+    <tr><td>Spam filter</td><td>Narrow AI</td><td>Sorting email</td><td>No</td></tr>
+    <tr><td>LLM assistant</td><td>Broad, not general</td><td>Writing, coding, Q&amp;A, translation</td><td>Many language tasks, but fails in odd places (exact maths, counting letters)</td></tr>
+    <tr><td>AGI (hypothetical)</td><td>Research goal</td><td>Any intellectual task</td><td>Would learn new tasks like a person. Not here yet.</td></tr>
+  </table>
+  <div class="take st"><b>Use this test</b> when you hear "AI will do everything": ask what task it was built and tested for.</div>
+</section>
+<section class="slide" data-sec="0 · AI, ML &amp; DL basics" data-title="One problem, four approaches">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>One problem, <span class="grad">four approaches</span>: "Is this email spam?"</h2>
+  <div class="grid g4 st">
+    <div class="card sm"><span class="tag y">1 · RULE-BASED AI</span><h3>Hand-written rules</h3>
+      <pre style="font-size:13px;padding:10px;margin:6px 0"><span class="k">if</span> <span class="s">"free money"</span> <span class="k">in</span> text:
+  <span class="k">return</span> <span class="s">"spam"</span></pre>
+      <p>✅ Transparent<br>❌ Spammers change one word and it breaks</p></div>
+    <div class="card sm"><span class="tag c">2 · MACHINE LEARNING</span><h3>Learn from labelled examples</h3>
+      <p style="margin:6px 0">You pick <b>features</b>: link count, CAPS ratio, sender age. A model learns the weights from 100k labelled emails.</p>
+      <p>✅ Adapts to data<br>❌ Humans must design features</p></div>
+    <div class="card sm"><span class="tag">3 · DEEP LEARNING</span><h3>Learns features itself</h3>
+      <p style="margin:6px 0">A neural network reads the raw text. It learns that "w1n a pr1ze" and "claim your reward" mean the same thing.</p>
+      <p>✅ Catches paraphrases<br>❌ Needs lots of data + compute</p></div>
+    <div class="card sm"><span class="tag r">4 · GENERATIVE AI</span><h3>Prompt an LLM</h3>
+      <p style="margin:6px 0">"Is this phishing? Explain why, then draft a safe reply to the sender."</p>
+      <p>✅ No training, explains, also writes<br>❌ Slower, costlier, less predictable</p></div>
+  </div>
+  <div class="take st"><b>Trend:</b> more flexibility each step, but also more compute, cost and unpredictability. Pick the simplest tool that works.</div>
+</section>
+<section class="slide" data-sec="0 · AI, ML &amp; DL basics" data-title="Machine learning: three flavours">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>Machine learning: <span class="grad">learning from data</span></h2>
+  <div class="grid g4 st">
+    <div class="card sm"><span class="tag g">SUPERVISED</span><h3>Labelled examples</h3><p>Input → <b>known answer</b>. The model learns the mapping.</p><p class="muted" style="margin-top:8px">Ex: email → spam/not spam<br>Ex: house features → price<br>Ex: customer history → churn</p></div>
+    <div class="card sm"><span class="tag c">UNSUPERVISED</span><h3>No labels</h3><p>Find <b>structure</b> on its own: groups, outliers, topics.</p><p class="muted" style="margin-top:8px">Ex: customer segments<br>Ex: fraud anomaly detection<br>Ex: topic discovery in reviews</p></div>
+    <div class="card sm"><span class="tag y">REINFORCEMENT</span><h3>Reward signal</h3><p>An agent tries actions, gets <b>rewards or penalties</b>, improves its strategy.</p><p class="muted" style="margin-top:8px">Ex: AlphaGo, game bots<br>Ex: robot walking<br>Ex: RLHF to align chatbots</p></div>
+    <div class="card sm"><span class="tag">SELF-SUPERVISED</span><h3>Labels from the data</h3><p>Hide part of the data, <b>predict it</b>. Labels come free.</p><p class="muted" style="margin-top:8px">Ex: predict the next word → how LLMs are pre-trained<br>Ex: fill in masked words (BERT)</p></div>
+  </div>
+  <div class="take st"><b>Key idea:</b> self-supervised learning is why LLMs could scale: the internet is a giant free labelled dataset.</div>
+</section>
+<section class="slide ex" data-sec="0 · AI, ML &amp; DL basics" data-title="Ex: a bank uses all four ML flavours">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>One bank, <span class="grad">four learning styles</span></h2>
+  <div class="grid g4 st">
+    <div class="card sm"><span class="tag g">SUPERVISED</span><h3>Fraud detection</h3><p>Millions of past transactions labelled "fraud" or "fine". The model learns which patterns predict fraud.</p></div>
+    <div class="card sm"><span class="tag c">UNSUPERVISED</span><h3>Customer segments</h3><p>No labels. The model groups customers by behaviour: savers, spenders, small businesses.</p></div>
+    <div class="card sm"><span class="tag y">REINFORCEMENT</span><h3>Reminder timing</h3><p>An agent tries different send times for payment reminders; reward = payment made on time.</p></div>
+    <div class="card sm"><span class="tag">SELF-SUPERVISED</span><h3>Document LLM</h3><p>Reads huge text collections, hiding words and predicting them. No human labelling needed.</p></div>
+  </div>
+  <div class="take st"><b>Connection to GenAI:</b> the last one is how every LLM starts life. The other three are the classic ML toolbox.</div>
+</section>
+<section class="slide" data-sec="0 · AI, ML &amp; DL basics" data-title="ML workflow in code">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>The ML workflow, <span class="grad">end to end</span></h2>
+  <div class="flow st" style="margin-bottom:14px">
+    <div class="node">1 · Data<small>collect + clean</small></div><span class="arrow">→</span>
+    <div class="node">2 · Features<small>choose inputs</small></div><span class="arrow">→</span>
+    <div class="node">3 · Train<small>fit the model</small></div><span class="arrow">→</span>
+    <div class="node">4 · Evaluate<small>on unseen data</small></div><span class="arrow">→</span>
+    <div class="node hl">5 · Predict<small>deploy + monitor</small></div>
+  </div>
+  <pre class="st" style="font-size:16px"><span class="k">from</span> sklearn.ensemble <span class="k">import</span> RandomForestClassifier
+<span class="k">from</span> sklearn.model_selection <span class="k">import</span> train_test_split
+
+X = df[[<span class="s">"num_links"</span>, <span class="s">"caps_ratio"</span>, <span class="s">"sender_age_days"</span>]]   <span class="cm"># features (inputs)</span>
+y = df[<span class="s">"is_spam"</span>]                                          <span class="cm"># labels (answers)</span>
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=<span class="n">0.2</span>)
+
+model = RandomForestClassifier().<span class="f">fit</span>(X_tr, y_tr)               <span class="cm"># TRAIN: learn the rules</span>
+<span class="f">print</span>(model.<span class="f">score</span>(X_te, y_te))                             <span class="cm"># EVALUATE on unseen data -> 0.94</span>
+model.<span class="f">predict</span>([[<span class="n">7</span>, <span class="n">0.6</span>, <span class="n">2</span>]])                                <span class="cm"># PREDICT -> [1]  (spam)</span></pre>
+  <div class="take st"><b>Notice:</b> we never wrote a spam rule. We supplied examples and the algorithm found the rules.</div>
+</section>
+<section class="slide" data-sec="0 · AI, ML &amp; DL basics" data-title="Core ML tasks">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>The core <span class="grad">ML tasks</span></h2>
+  <table class="tbl st">
+    <tr><th>Task</th><th>Question it answers</th><th>Real example</th><th>Typical algorithms</th></tr>
+    <tr><td>Classification</td><td>Which category?</td><td>Spam vs not spam, tumour type</td><td>Logistic regression, trees, SVM</td></tr>
+    <tr><td>Regression</td><td>How much / how many?</td><td>House price, delivery ETA</td><td>Linear regression, gradient boosting</td></tr>
+    <tr><td>Clustering</td><td>What groups exist?</td><td>Customer segments</td><td>k-means, hierarchical</td></tr>
+    <tr><td>Anomaly detection</td><td>What looks unusual?</td><td>Card fraud, server faults</td><td>Isolation forest, autoencoders</td></tr>
+    <tr><td>Recommendation</td><td>What will they want next?</td><td>Netflix, Spotify, shop</td><td>Collaborative filtering, embeddings</td></tr>
+    <tr><td>Forecasting</td><td>What happens next?</td><td>Demand, energy load</td><td>ARIMA, gradient boosting, LSTM</td></tr>
+  </table>
+  <div class="take st"><b>Reality check:</b> for tabular business data, classic ML (e.g. gradient boosting) is often cheaper and more accurate than an LLM.</div>
+</section>
+<section class="slide" data-sec="0 · AI, ML &amp; DL basics" data-title="Overfitting and generalization">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>Learning vs. <span class="grad">memorising</span></h2>
+  <div class="grid g3 st">
+    <div class="card sm"><span class="tag y">UNDERFITTING</span><h3>Too simple</h3><p>Misses the real pattern. Bad on training data <b>and</b> new data.</p><p class="muted" style="margin-top:8px">Like studying one chapter for the whole exam.</p></div>
+    <div class="card sm" style="border-color:rgba(52,211,153,.6)"><span class="tag g">GOOD FIT</span><h3>Generalises</h3><p>Captures the pattern, ignores the noise. Good on <b>unseen</b> data.</p><p class="muted" style="margin-top:8px">Like understanding the concepts.</p></div>
+    <div class="card sm"><span class="tag r">OVERFITTING</span><h3>Memorises</h3><p>Perfect on training data, poor on new data. It learned the noise.</p><p class="muted" style="margin-top:8px">Like memorising last year's answer sheet.</p></div>
+  </div>
+  <div class="st" style="margin-top:22px">
+    <h3>Why we split the data</h3>
+    <div style="display:flex;border-radius:10px;overflow:hidden;font-weight:700;font-size:16px;text-align:center;margin-top:8px">
+      <div style="flex:70;background:#3b4a9c;padding:12px">Train 70% · the model learns here</div>
+      <div style="flex:15;background:#0e7490;padding:12px">Validate 15%<br><span style="font-weight:500;font-size:13px">tune settings</span></div>
+      <div style="flex:15;background:#9d174d;padding:12px">Test 15%<br><span style="font-weight:500;font-size:13px">final exam</span></div>
+    </div>
+  </div>
+  <div class="take st"><b>LLM link:</b> memorised training text is one reason models can repeat facts wrongly or leak data. Always judge a model on data it hasn't seen.</div>
+</section>
+<section class="slide" data-sec="0 · AI, ML &amp; DL basics" data-title="Deep learning: neural networks">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>Deep learning: <span class="grad">layers of tiny functions</span></h2>
+  <div class="row" style="gap:28px;align-items:center">
+    <div class="st" style="flex:none"><svg width="460" height="300" viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg"><line x1="50" y1="75" x2="170" y2="50" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="75" x2="170" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="75" x2="170" y2="150" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="75" x2="170" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="75" x2="170" y2="250" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="150" x2="170" y2="50" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="150" x2="170" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="150" x2="170" y2="150" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="150" x2="170" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="150" x2="170" y2="250" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="225" x2="170" y2="50" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="225" x2="170" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="225" x2="170" y2="150" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="225" x2="170" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="50" y1="225" x2="170" y2="250" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="50" x2="290" y2="50" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="50" x2="290" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="50" x2="290" y2="150" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="50" x2="290" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="50" x2="290" y2="250" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="100" x2="290" y2="50" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="100" x2="290" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="100" x2="290" y2="150" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="100" x2="290" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="100" x2="290" y2="250" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="150" x2="290" y2="50" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="150" x2="290" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="150" x2="290" y2="150" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="150" x2="290" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="150" x2="290" y2="250" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="200" x2="290" y2="50" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="200" x2="290" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="200" x2="290" y2="150" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="200" x2="290" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="200" x2="290" y2="250" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="250" x2="290" y2="50" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="250" x2="290" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="250" x2="290" y2="150" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="250" x2="290" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="170" y1="250" x2="290" y2="250" stroke="#3a4a8c" stroke-width="1"/><line x1="290" y1="50" x2="410" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="290" y1="50" x2="410" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="290" y1="100" x2="410" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="290" y1="100" x2="410" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="290" y1="150" x2="410" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="290" y1="150" x2="410" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="290" y1="200" x2="410" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="290" y1="200" x2="410" y2="200" stroke="#3a4a8c" stroke-width="1"/><line x1="290" y1="250" x2="410" y2="100" stroke="#3a4a8c" stroke-width="1"/><line x1="290" y1="250" x2="410" y2="200" stroke="#3a4a8c" stroke-width="1"/><circle cx="50" cy="75" r="13" fill="#171e3a" stroke="#22d3ee" stroke-width="3"/><circle cx="50" cy="150" r="13" fill="#171e3a" stroke="#22d3ee" stroke-width="3"/><circle cx="50" cy="225" r="13" fill="#171e3a" stroke="#22d3ee" stroke-width="3"/><circle cx="170" cy="50" r="13" fill="#171e3a" stroke="#7c5cff" stroke-width="3"/><circle cx="170" cy="100" r="13" fill="#171e3a" stroke="#7c5cff" stroke-width="3"/><circle cx="170" cy="150" r="13" fill="#171e3a" stroke="#7c5cff" stroke-width="3"/><circle cx="170" cy="200" r="13" fill="#171e3a" stroke="#7c5cff" stroke-width="3"/><circle cx="170" cy="250" r="13" fill="#171e3a" stroke="#7c5cff" stroke-width="3"/><circle cx="290" cy="50" r="13" fill="#171e3a" stroke="#7c5cff" stroke-width="3"/><circle cx="290" cy="100" r="13" fill="#171e3a" stroke="#7c5cff" stroke-width="3"/><circle cx="290" cy="150" r="13" fill="#171e3a" stroke="#7c5cff" stroke-width="3"/><circle cx="290" cy="200" r="13" fill="#171e3a" stroke="#7c5cff" stroke-width="3"/><circle cx="290" cy="250" r="13" fill="#171e3a" stroke="#7c5cff" stroke-width="3"/><circle cx="410" cy="100" r="13" fill="#171e3a" stroke="#fbbf24" stroke-width="3"/><circle cx="410" cy="200" r="13" fill="#171e3a" stroke="#fbbf24" stroke-width="3"/><text x="50" y="298" fill="#9aa6d6" font-size="13" text-anchor="middle" font-family="Inter,sans-serif">input</text><text x="170" y="298" fill="#9aa6d6" font-size="13" text-anchor="middle" font-family="Inter,sans-serif">hidden</text><text x="290" y="298" fill="#9aa6d6" font-size="13" text-anchor="middle" font-family="Inter,sans-serif">hidden</text><text x="410" y="298" fill="#9aa6d6" font-size="13" text-anchor="middle" font-family="Inter,sans-serif">output</text></svg></div>
+    <div class="st" style="flex:1">
+      <div class="card sm" style="margin-bottom:12px"><h3>One neuron</h3><pre style="font-size:15px;padding:8px 12px">out = activation( w1·x1 + w2·x2 + … + b )</pre><p>Weights <b>w</b> are the learned numbers. Billions of them = "parameters".</p></div>
+      <div class="card sm"><h3>How it learns (repeat millions of times)</h3>
+        <p><span class="num">1</span>Forward pass: make a prediction<br><span class="num">2</span>Loss: measure how wrong it was<br><span class="num">3</span>Backpropagation: find who is to blame<br><span class="num">4</span>Gradient descent: nudge weights to reduce loss</p></div>
+    </div>
+  </div>
+  <div class="take st"><b>"Deep"</b> = many hidden layers. Early layers learn simple features (edges, letters); later layers learn abstract ones (faces, meaning).</div>
+</section>
+<section class="slide ex" data-sec="0 · AI, ML &amp; DL basics" data-title="Ex: reading a handwritten digit">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>Inside a neural network: <span class="grad">recognising a "7"</span></h2>
+  <div class="flow st" style="align-items:stretch">
+    <div class="node">Input<small>28×28 pixels = 784 numbers</small></div><span class="arrow">→</span>
+    <div class="node">Layer 1<small>finds tiny edges and strokes</small></div><span class="arrow">→</span>
+    <div class="node">Layer 2<small>combines them: a horizontal bar, a diagonal</small></div><span class="arrow">→</span>
+    <div class="node">Layer 3<small>"bar + diagonal" looks like a 7</small></div><span class="arrow">→</span>
+    <div class="node hl">Output<small>10 scores, one per digit</small></div>
+  </div>
+  <div class="st" style="margin-top:18px">
+    <div class="barrow"><span class="lbl" style="width:70px">digit 7</span><div class="barwrap"><div class="bar" style="width:93%"></div></div><span class="val">0.93</span></div>
+    <div class="barrow"><span class="lbl" style="width:70px">digit 1</span><div class="barwrap"><div class="bar" style="width:4%;background:#3a4372"></div></div><span class="val">0.04</span></div>
+    <div class="barrow"><span class="lbl" style="width:70px">digit 9</span><div class="barwrap"><div class="bar" style="width:2%;background:#3a4372"></div></div><span class="val">0.02</span></div>
+  </div>
+  <p class="muted st" style="font-size:14px">Illustrative scores.</p>
+  <div class="take st"><b>Nobody programmed "what a 7 looks like".</b> Training adjusted millions of weights until these layers emerged. LLMs use the same principle on text.</div>
+</section>
+<section class="slide" data-sec="0 · AI, ML &amp; DL basics" data-title="Deep learning architectures">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>Architectures: <span class="grad">different shapes for different data</span></h2>
+  <div class="grid g4 st">
+    <div class="card sm"><span class="tag c">CNN</span><h3>Images</h3><p>Slides small filters over pixels to find edges, shapes, objects.</p><p class="muted" style="margin-top:8px">Face unlock, X-ray reading, self-driving vision</p></div>
+    <div class="card sm"><span class="tag y">RNN / LSTM</span><h3>Sequences (older)</h3><p>Reads one step at a time, carrying a memory. Slow and forgets long context.</p><p class="muted" style="margin-top:8px">Early speech + translation. Largely replaced.</p></div>
+    <div class="card sm" style="border-color:rgba(124,92,255,.8)"><span class="tag">TRANSFORMER</span><h3>Language + more</h3><p>Attention lets every token look at every other token, in parallel.</p><p class="muted" style="margin-top:8px">GPT, Claude, Gemini, Llama, BERT</p></div>
+    <div class="card sm"><span class="tag r">DIFFUSION</span><h3>Image / video generation</h3><p>Start from noise, remove it step by step toward an image that matches the prompt.</p><p class="muted" style="margin-top:8px">Stable Diffusion, Midjourney, video models</p></div>
+  </div>
+  <div class="take st"><b>Takeaway:</b> the transformer is the engine behind modern GenAI. It scaled better than anything before it.</div>
+</section>
+<section class="slide ex" data-sec="0 · AI, ML &amp; DL basics" data-title="Ex: which architecture for which product">
+  <div class="chip">0 · AI, ML &amp; DL basics</div>
+  <h2>Pick the architecture <span class="grad">for the product</span></h2>
+  <table class="tbl st">
+    <tr><th>Product</th><th>Data</th><th>Architecture</th><th>Why</th></tr>
+    <tr><td>Dashcam pedestrian detection</td><td>Video frames</td><td>CNN (vision networks)</td><td>Good at spatial patterns in pixels</td></tr>
+    <tr><td>Customer-support chatbot</td><td>Text</td><td>Transformer (LLM)</td><td>Attention handles long, contextual language</td></tr>
+    <tr><td>AI poster generator</td><td>Prompt → image</td><td>Diffusion model</td><td>Denoises toward an image that fits the prompt</td></tr>
+    <tr><td>Older speech and translation systems</td><td>Sequences</td><td>RNN / LSTM</td><td>Read step by step; mostly replaced by transformers</td></tr>
+  </table>
+  <div class="take st"><b>For this course:</b> the transformer is the one that matters. It powers every LLM you will call from Python.</div>
+</section>
+<section class="slide" data-sec="1 · Where GenAI fits" data-title="The AI family tree">
+  <div class="chip">1 · Where GenAI fits</div>
+  <h2>The AI family: <span class="grad">we focus on the centre</span></h2>
+  <div class="row" style="gap:50px;align-items:center;margin-top:6px">
+    <div class="nest st" style="flex:none;width:470px;height:470px">
+      <div style="inset:0;border-color:#4b5688;color:#7f8ab8;opacity:.8">AI</div>
+      <div style="inset:50px;border-color:#4b5688;color:#7f8ab8;opacity:.8">Machine Learning</div>
+      <div style="inset:100px;border-color:#4b5688;color:#7f8ab8;opacity:.8">Deep Learning</div>
+      <div style="inset:158px;border-color:#fbbf24;color:#fcd34d;background:rgba(251,191,36,.08);text-align:center;align-items:center;padding:0;flex-direction:column;font-size:24px">Generative AI<span style="font-size:15px;font-weight:500;color:var(--muted)">LLMs live here</span></div>
+    </div>
+    <div class="stack st" style="flex:1">
+      <div class="layer" style="opacity:.6"><div>AI<br><span>Any software that acts intelligently, including plain rules</span></div></div>
+      <div class="layer" style="opacity:.6"><div>Machine learning<br><span>Learns patterns from labelled data</span></div></div>
+      <div class="layer" style="opacity:.6"><div>Deep learning<br><span>Many-layer neural networks learn the features themselves</span></div></div>
+      <div class="layer" style="border-color:#fbbf24;background:rgba(251,191,36,.1)"><div>Generative AI ⭐ <span class="tag y" style="margin:0 0 0 8px">THIS COURSE</span><br><span>Models that create new text, images, audio and code from a prompt</span></div></div>
+    </div>
+  </div>
+  <div class="take st"><b>In one line:</b> ML and DL are the engine room. As a GenAI engineer you drive the car, so you need to know what the engine does, not how to rebuild it.</div>
+</section>
+<section class="slide ex" data-sec="1 · Where GenAI fits" data-title="Example: spot the layer">
+  <div class="chip">Example</div>
+  <h2>Spot the layer <span class="grad">on your phone</span></h2>
+  <div class="grid g3 st">
+    <div class="card"><span class="emoji">🔓</span><span class="tag">DEEP LEARNING</span><h3>Face unlock</h3><p>A neural net turns pixels into "that's you" or "not you". Output: a label.</p></div>
+    <div class="card"><span class="emoji">🎵</span><span class="tag c">MACHINE LEARNING</span><h3>Music recommendations</h3><p>Learns from what you and similar users played. Output: a ranked list.</p></div>
+    <div class="card" style="border-color:#fbbf24"><span class="emoji">💬</span><span class="tag y">GENERATIVE AI</span><h3>"Draft a reply to my landlord"</h3><p>Writes brand-new text that never existed before. Output: content.</p></div>
+  </div>
+  <div class="take st"><b>Test:</b> if the answer is a label or a number, it's classic ML/DL. If the answer is new content you could publish, it's GenAI.</div>
+</section>
+<section class="slide" data-sec="1 · Where GenAI fits" data-title="AI vs ML vs DL vs GenAI table">
+  <div class="chip">1 · Where GenAI fits</div>
+  <h2>AI · ML · DL · GenAI, <span class="grad">side by side</span></h2>
+  <table class="tbl st" style="font-size:15px">
+    <tr><th></th><th>AI</th><th>Machine learning</th><th>Deep learning</th><th>Generative AI</th></tr>
+    <tr><td>Core idea</td><td>Machines that act intelligently</td><td>Learn rules from data</td><td>Neural nets learn features too</td><td>Create new content</td></tr>
+    <tr><td>Data needed</td><td>None (rules) to lots</td><td>Hundreds to millions of rows</td><td>Large: millions of items</td><td>Huge for training; zero for you</td></tr>
+    <tr><td>Human effort</td><td>Write every rule</td><td>Engineer features, label data</td><td>Label data, design network</td><td>Write a good prompt</td></tr>
+    <tr><td>Output</td><td>Decision</td><td>Label / number</td><td>Label, text, pixels</td><td>Text, image, audio, code</td></tr>
+    <tr><td>Example</td><td>Thermostat rules, chess engine</td><td>Churn prediction</td><td>Tumour detection, speech recognition</td><td>Claude, Midjourney</td></tr>
+    <tr><td>Weak spot</td><td>Brittle</td><td>Needs good features</td><td>Data + compute hungry</td><td>Hallucination, cost</td></tr>
+  </table>
+</section>
+<section class="slide" data-sec="1 · Where GenAI fits" data-title="Choosing the right tool">
+  <div class="chip">1 · Where GenAI fits</div>
+  <h2>Pick the <span class="grad">simplest tool</span> that works</h2>
+  <div class="stack st">
+    <div class="layer"><div>Exact, auditable logic (tax, payments, sorting)<br><span>Needs the same answer every time</span></div><span class="tag y" style="margin:0">PLAIN CODE</span></div>
+    <div class="layer"><div>Predict from structured / tabular data (churn, price, risk)<br><span>Rows and columns, labelled history</span></div><span class="tag c" style="margin:0">CLASSIC ML</span></div>
+    <div class="layer"><div>Perceive images, audio, video at scale (scans, speech)<br><span>Pattern recognition on raw signals</span></div><span class="tag" style="margin:0">DEEP LEARNING</span></div>
+    <div class="layer"><div>Understand or write language, open-ended tasks, unstructured input<br><span>Summarise, extract, converse, draft, reason over text</span></div><span class="tag r" style="margin:0">GENAI / LLM</span></div>
+  </div>
+  <div class="take st"><b>Anti-pattern:</b> asking an LLM to add numbers or sort a list. Use code for what code does well, and let the LLM handle language.</div>
+</section>
+<section class="slide" data-sec="1 · Where GenAI fits" data-title="Quick quiz">
+  <div class="chip">1 · Where GenAI fits</div>
+  <h2>Quick quiz: which one is it? <span class="muted" style="font-size:22px;font-weight:600">(click a row to reveal)</span></h2>
+  <div class="st">
+    <div class="qrow" onclick="this.classList.toggle('show')"><span>Heater turns on if temperature &lt; 20°C</span><b>Rule-based AI (not ML: nothing was learned)</b></div>
+    <div class="qrow" onclick="this.classList.toggle('show')"><span>Predict churn from 20 billing columns</span><b>Classic ML (supervised, gradient boosting)</b></div>
+    <div class="qrow" onclick="this.classList.toggle('show')"><span>Spot a tumour on an X-ray</span><b>Deep learning (CNN, image)</b></div>
+    <div class="qrow" onclick="this.classList.toggle('show')"><span>Write a product description from 3 bullet points</span><b>Generative AI (LLM)</b></div>
+    <div class="qrow" onclick="this.classList.toggle('show')"><span>Group customers into segments, no labels</span><b>ML, unsupervised (clustering)</b></div>
+    <div class="qrow" onclick="this.classList.toggle('show')"><span>Transcribe a meeting recording</span><b>Deep learning (speech recognition, e.g. Whisper)</b></div>
+  </div>
+</section>
+<section class="slide" data-sec="2 · The shift" data-title="Program, train, prompt">
+  <div class="chip">2 · The shift</div>
+  <h2>Three ways to build behaviour: <span class="grad">code → train → prompt</span></h2>
+  <div class="flow st" style="align-items:stretch;margin-top:6px">
+    <div class="card" style="flex:1;text-align:center"><span class="emoji" style="font-size:54px">⌨️</span><span class="tag y">PROGRAM IT</span><h3>Write the rules</h3><p>Developer codes every case.</p><p class="muted" style="margin-top:8px">Weeks · exact · brittle</p></div>
+    <span class="arrow">→</span>
+    <div class="card" style="flex:1;text-align:center"><span class="emoji" style="font-size:54px">📊</span><span class="tag c">TRAIN IT</span><h3>Learn from labels</h3><p>Collect data, train a model per task.</p><p class="muted" style="margin-top:8px">Weeks · needs data + team</p></div>
+    <span class="arrow">→</span>
+    <div class="card" style="flex:1;text-align:center;border-color:#fbbf24;background:rgba(251,191,36,.07)"><span class="emoji" style="font-size:54px">💬</span><span class="tag y">PROMPT IT</span><h3>Describe the task</h3><p>One pre-trained model, steered by instructions.</p><p class="muted" style="margin-top:8px">Minutes · flexible · probabilistic</p></div>
+  </div>
+  <div class="st" style="margin-top:20px"><div class="barrow"><span class="lbl" style="width:230px;font-family:inherit;font-size:17px">Effort to start a new task</span><div class="barwrap"><div class="bar" style="width:92%;background:#fb7185"></div></div><span class="val" style="width:70px">program</span></div>
+  <div class="barrow"><span class="lbl" style="width:230px"></span><div class="barwrap"><div class="bar" style="width:70%;background:#fbbf24"></div></div><span class="val" style="width:70px">train</span></div>
+  <div class="barrow"><span class="lbl" style="width:230px"></span><div class="barwrap"><div class="bar" style="width:12%"></div></div><span class="val" style="width:70px">prompt</span></div></div>
+  <p class="muted st" style="font-size:14px">Illustrative, not measured.</p>
+</section>
+<section class="slide ex" data-sec="2 · The shift" data-title="Example: refund emails three ways">
+  <div class="chip">Example</div>
+  <h2>Task: "is this email a refund request?" <span class="grad">three ways</span></h2>
+  <div class="grid g3 st">
+    <div><span class="tag y">PROGRAM</span><pre style="font-size:13.5px;padding:12px 14px;margin-top:6px"><span class="k">if</span> <span class="s">"refund"</span> <span class="k">in</span> t <span class="k">or</span> <span class="s">"money back"</span> <span class="k">in</span> t:
+    <span class="k">return</span> <span class="s">True</span></pre><p style="font-size:16px;margin-top:8px">Misses "I want my payment returned". Every new phrasing = new rule.</p></div>
+    <div><span class="tag c">TRAIN</span><pre style="font-size:13.5px;padding:12px 14px;margin-top:6px">emails.csv  (5,000 labelled)
+→ train classifier
+→ deploy + retrain monthly</pre><p style="font-size:16px;margin-top:8px">Handles phrasing variety, but you needed 5,000 labels first.</p></div>
+    <div style="border:1px solid #fbbf24;border-radius:14px;padding:10px 12px"><span class="tag y">PROMPT</span><pre style="font-size:13.5px;padding:12px 14px;margin-top:6px">Is this email asking for a
+refund? Answer yes or no.
+
+"{email}"</pre><p style="font-size:16px;margin-top:8px">Works on day one, no labels. Add examples if edge cases fail.</p></div>
+  </div>
+  <div class="take st"><b>Trade-off:</b> prompting wins on speed and flexibility. Code still wins when you need guaranteed, auditable behaviour.</div>
+</section>
+<section class="slide" data-sec="3 · What is GenAI" data-title="Discriminative vs generative">
+  <div class="chip">3 · What is GenAI</div>
+  <h2>Generative AI <span class="grad">creates</span>, classic models <span class="grad">label</span></h2>
+  <div class="grid g2 st" style="gap:26px">
+    <div class="card" style="text-align:center"><span class="tag c">CLASSIC (DISCRIMINATIVE)</span>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin:18px 0"><div style="font-size:70px">🐱</div><span class="arrow">→</span><div class="node hl" style="flex:none;font-size:24px;padding:18px 26px">"cat"</div></div>
+      <h3>Input → label or number</h3><p>The answer already existed in a fixed list.</p></div>
+    <div class="card" style="text-align:center;border-color:#fbbf24"><span class="tag y">GENERATIVE</span>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin:18px 0"><div class="node" style="flex:none;font-size:18px;padding:18px 18px">"a cat astronaut,<br>watercolour"</div><span class="arrow">→</span><div style="font-size:70px">🎨</div></div>
+      <h3>Prompt → brand-new content</h3><p>The output is sampled, so it can be unlimited and different each time.</p></div>
+  </div>
+  <div class="take st"><b>Key idea:</b> a generative model learned the <i>patterns of the content itself</i>, so it can produce more of it.</div>
+</section>
+<section class="slide ex" data-sec="3 · What is GenAI" data-title="Example: one support ticket">
+  <div class="chip">Example</div>
+  <h2>One ticket, <span class="grad">two kinds of AI</span></h2>
+  <div class="pbox st" style="margin-bottom:14px"><span class="lb">THE TICKET</span>"Hi, my invoice shows $480 but I was quoted $400. Can you fix it before Friday? Thanks, Priya"</div>
+  <div class="grid g2 st">
+    <div class="card sm"><span class="tag c">CLASSIC MODEL OUTPUT</span><pre style="font-size:16px;margin-top:8px">{ "category": "billing",
+  "urgency":  0.74 }</pre><p>A label and a score. Useful, but that's all.</p></div>
+    <div class="card sm" style="border-color:#fbbf24"><span class="tag y">GENAI OUTPUT</span><div class="pbox out" style="margin-top:8px;font-size:14.5px">Hi Priya, thanks for flagging this. I've checked the quote and corrected the invoice to $400. You'll receive the updated PDF today, well before Friday. Best, Acme Support</div></div>
+  </div>
+  <div class="take st"><b>Notice:</b> GenAI also did the classification implicitly, then wrote the reply. One model, many jobs.</div>
+</section>
+<section class="slide" data-sec="4 · GenAI landscape" data-title="Modalities: input to output">
+  <div class="chip">4 · GenAI landscape</div>
+  <h2>GenAI is about <span class="grad">converting one medium into another</span></h2>
+  <div class="grid g4 st" style="gap:14px">
+    <div class="card sm" style="text-align:center"><div style="font-size:32px">📝 → 📝</div><h3>Text → Text</h3><p>Chat, summarise, translate</p></div>
+    <div class="card sm" style="text-align:center"><div style="font-size:32px">📝 → 🖼️</div><h3>Text → Image</h3><p>Posters, product shots</p></div>
+    <div class="card sm" style="text-align:center"><div style="font-size:32px">🖼️ → 📝</div><h3>Image → Text</h3><p>Describe a chart or receipt</p></div>
+    <div class="card sm" style="text-align:center"><div style="font-size:32px">🎙️ → 📝</div><h3>Audio → Text</h3><p>Meeting transcripts</p></div>
+    <div class="card sm" style="text-align:center"><div style="font-size:32px">📝 → 🔊</div><h3>Text → Audio</h3><p>Voice-overs, music</p></div>
+    <div class="card sm" style="text-align:center"><div style="font-size:32px">📝 → 🎬</div><h3>Text → Video</h3><p>Ads, storyboards</p></div>
+    <div class="card sm" style="text-align:center"><div style="font-size:32px">📝 → 💻</div><h3>Text → Code</h3><p>Apps, tests, fixes</p></div>
+    <div class="card sm" style="text-align:center;border-color:#fbbf24"><div style="font-size:32px">🧩 → 📝</div><h3>Multimodal in</h3><p>Image + text + audio together</p></div>
+  </div>
+  <div class="take st"><b>Focus:</b> text-out LLMs are the workhorse of GenAI engineering. Most of the rest of this course builds on them.</div>
+</section>
+<section class="slide ex" data-sec="4 · GenAI landscape" data-title="Example: a travel app uses five modalities">
+  <div class="chip">Example</div>
+  <h2>One travel app, <span class="grad">five GenAI modalities</span></h2>
+  <div class="flow st" style="align-items:stretch">
+    <div class="node">🎙️<small>User says: "4 days in Lisbon, food and trams"</small></div><span class="arrow">→</span>
+    <div class="node">📝<small>LLM plans the itinerary</small></div><span class="arrow">→</span>
+    <div class="node">🖼️<small>Image model: cover art for the trip</small></div><span class="arrow">→</span>
+    <div class="node">📷→📝<small>User uploads a menu photo; model translates it</small></div><span class="arrow">→</span>
+    <div class="node hl">🔊<small>Voice reads tomorrow's plan</small></div>
+  </div>
+  <div class="take st"><b>Design point:</b> products chain modalities. The LLM is usually the "brain" that coordinates the rest.</div>
+</section>
+<section class="slide" data-sec="5 · LLMs" data-title="One model, many tasks">
+  <div class="chip">5 · LLMs and foundation models</div>
+  <h2>A foundation model is <span class="grad">trained once, used for everything</span></h2>
+  <div class="st" style="display:flex;justify-content:center">
+  <svg width="1000" height="360" viewBox="0 0 1000 360" font-family="Inter,sans-serif">
+    <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+    <g stroke="#3a4a8c" stroke-width="2">
+      <line x1="500" y1="180" x2="150" y2="50"/><line x1="500" y1="180" x2="500" y2="30"/><line x1="500" y1="180" x2="850" y2="50"/>
+      <line x1="500" y1="180" x2="110" y2="180"/><line x1="500" y1="180" x2="890" y2="180"/>
+      <line x1="500" y1="180" x2="150" y2="310"/><line x1="500" y1="180" x2="500" y2="335"/><line x1="500" y1="180" x2="850" y2="310"/>
+    </g>
+    <circle cx="500" cy="180" r="82" fill="url(#g1)"/>
+    <text x="500" y="176" text-anchor="middle" font-size="26" font-weight="800" fill="#06101f">LLM</text>
+    <text x="500" y="200" text-anchor="middle" font-size="14" fill="#06304a">one set of weights</text>
+    <g font-size="18" font-weight="700" fill="#eef1ff" text-anchor="middle">
+      <g><rect x="60" y="28" width="180" height="42" rx="21" fill="#1e2748" stroke="#2b3664"/><text x="150" y="55">Summarise</text></g>
+      <g><rect x="410" y="8" width="180" height="42" rx="21" fill="#1e2748" stroke="#2b3664"/><text x="500" y="35">Translate</text></g>
+      <g><rect x="760" y="28" width="180" height="42" rx="21" fill="#1e2748" stroke="#2b3664"/><text x="850" y="55">Write code</text></g>
+      <g><rect x="10" y="159" width="200" height="42" rx="21" fill="#1e2748" stroke="#2b3664"/><text x="110" y="186">Extract data</text></g>
+      <g><rect x="790" y="159" width="200" height="42" rx="21" fill="#1e2748" stroke="#2b3664"/><text x="890" y="186">Answer questions</text></g>
+      <g><rect x="60" y="289" width="180" height="42" rx="21" fill="#1e2748" stroke="#2b3664"/><text x="150" y="316">Classify</text></g>
+      <g><rect x="410" y="314" width="180" height="42" rx="21" fill="#1e2748" stroke="#2b3664"/><text x="500" y="341">Reason / plan</text></g>
+      <g><rect x="760" y="289" width="180" height="42" rx="21" fill="#1e2748" stroke="#2b3664"/><text x="850" y="316">Brainstorm</text></g>
+    </g>
+  </svg></div>
+  <div class="take st"><b>LLM</b> = a foundation model specialised in language. You don't train a new model per task, you <b>instruct</b> it.</div>
+</section>
+<section class="slide ex" data-sec="5 · LLMs" data-title="Example: same model, five prompts">
+  <div class="chip">Example</div>
+  <h2>Same model, <span class="grad">five different jobs</span></h2>
+  <table class="tbl st">
+    <tr><th>Job</th><th>Prompt (all sent to the same model)</th></tr>
+    <tr><td>Summarise</td><td>"Summarise this meeting transcript in 3 bullets."</td></tr>
+    <tr><td>Translate</td><td>"Translate to Spanish, keep a formal tone: …"</td></tr>
+    <tr><td>Extract</td><td>"List every date and amount in this contract as JSON."</td></tr>
+    <tr><td>Code</td><td>"Write a Python function that validates an IBAN."</td></tr>
+    <tr><td>Reason</td><td>"Given these constraints, propose a 4-week rollout plan."</td></tr>
+  </table>
+  <div class="take st"><b>Before LLMs</b> this meant five separately built and trained systems.</div>
+</section>
+<section class="slide" data-sec="6 · Inside an LLM" data-title="Tokens">
+  <div class="chip">6 · Inside an LLM</div>
+  <h2>Tokens: how the model <span class="grad">sees text</span></h2>
+  <p class="st" style="font-size:20px">Text is chopped into <b>tokens</b> (word pieces); each maps to an integer ID. Type below.</p>
+  <div class="st" style="margin-top:10px">
+    <input id="tokIn" class="input" value="Unbelievably, tokenization is surprisingly useful!" oninput="tokenize()">
+    <div id="tokOut" style="margin-top:14px;min-height:80px"></div>
+    <div id="tokIds" class="muted" style="font-family:'SF Mono',monospace;font-size:15px;margin-top:4px"></div>
+    <p class="muted" style="margin-top:8px;font-size:17px" id="tokStat"></p>
+  </div>
+  <div class="take st">≈ 1 token ≈ ¾ of an English word. <b>Cost, speed and limits are all measured in tokens.</b> <span class="muted" style="font-weight:400;font-size:15px">(Simplified tokenizer.)</span></div>
+</section>
+<section class="slide ex" data-sec="6 · Inside an LLM" data-title="Example: estimating cost">
+  <div class="chip">Example</div>
+  <h2>Estimate the <span class="grad">token bill</span> before you build</h2>
+  <div class="grid g2 st">
+    <pre style="font-size:15px"><span class="cm"># 1 page ≈ 500 words ≈ 670 tokens</span>
+tokens_per_doc = <span class="n">500</span> / <span class="n">0.75</span>
+docs_per_day   = <span class="n">1000</span>
+input_tokens   = tokens_per_doc * docs_per_day
+               <span class="cm"># ≈ 670,000 / day</span>
+
+cost = input_tokens / <span class="n">1_000_000</span> * PRICE_IN
+     + output_tokens / <span class="n">1_000_000</span> * PRICE_OUT</pre>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="card sm"><h3>Steps</h3><ol style="padding-left:22px;color:#d5dbf7;font-size:17px;line-height:1.5"><li>Estimate tokens per request</li><li>Multiply by volume</li><li>Plug in your model's price per million tokens (input and output differ)</li></ol></div>
+      <div class="card sm"><h3>Surprises</h3><p>Output tokens usually cost more than input. Long system prompts and few-shot examples are paid for on <b>every</b> call.</p></div>
+    </div>
+  </div>
+  <div class="take st"><b>Habit:</b> look up current pricing for your model and always compute a daily estimate before shipping.</div>
+</section>
+<section class="slide" data-sec="6 · Inside an LLM" data-title="Next-token prediction">
+  <div class="chip">6 · Inside an LLM</div>
+  <h2>Next-token prediction: <span class="grad">the whole trick</span></h2>
+  <div class="card st" style="font-size:30px;font-weight:700;min-height:90px" id="ntText">The capital of France is</div>
+  <div class="st" id="ntBars" style="margin-top:10px"></div>
+  <div class="row st" style="margin-top:8px;gap:10px;align-items:center">
+    <button class="btn" onclick="ntSample()">🎲 Sample next token</button>
+    <button class="btn alt" onclick="ntReset()">Reset</button>
+    <span class="muted" style="font-size:16px">Probabilities for every token → pick one → repeat. A chat reply is this loop.</span>
+  </div>
+</section>
+<section class="slide ex" data-sec="6 · Inside an LLM" data-title="Example: finishing a sentence">
+  <div class="chip">Example</div>
+  <h2>Why answers <span class="grad">vary</span> and why they can be wrong</h2>
+  <div class="card st" style="font-size:26px;font-weight:700">Our new coffee tastes <span class="muted">…</span></div>
+  <div class="st" style="margin-top:10px">
+    <div class="barrow"><span class="lbl">·rich</span><div class="barwrap"><div class="bar" style="width:34%"></div></div><span class="val">34%</span></div>
+    <div class="barrow"><span class="lbl">·smooth</span><div class="barwrap"><div class="bar" style="width:27%"></div></div><span class="val">27%</span></div>
+    <div class="barrow"><span class="lbl">·amazing</span><div class="barwrap"><div class="bar" style="width:15%"></div></div><span class="val">15%</span></div>
+    <div class="barrow"><span class="lbl">·bitter</span><div class="barwrap"><div class="bar" style="width:6%;background:#fb7185"></div></div><span class="val">6%</span></div>
+  </div>
+  <p class="muted st" style="font-size:14px">Illustrative probabilities.</p>
+  <div class="take st"><b>Two lessons:</b> (1) the model samples, so reruns differ; (2) it picks <i>likely</i> words, not <i>verified</i> ones. Fluent is not the same as true.</div>
+</section>
+<section class="slide" data-sec="6 · Inside an LLM" data-title="Embeddings">
+  <div class="chip">6 · Inside an LLM</div>
+  <h2>Embeddings: <span class="grad">meaning as coordinates</span></h2>
+  <div class="row st" style="gap:24px;align-items:center">
+    <svg width="640" height="360" viewBox="0 0 640 360" font-family="Inter,sans-serif" font-size="15" style="background:#0a0e1e;border:1px solid #2b3664;border-radius:14px;flex:none">
+      <ellipse cx="170" cy="110" rx="125" ry="70" fill="rgba(124,92,255,.12)" stroke="#7c5cff" stroke-dasharray="5 4"/>
+      <ellipse cx="470" cy="120" rx="130" ry="70" fill="rgba(34,211,238,.1)" stroke="#22d3ee" stroke-dasharray="5 4"/>
+      <ellipse cx="320" cy="285" rx="140" ry="55" fill="rgba(244,114,182,.1)" stroke="#f472b6" stroke-dasharray="5 4"/>
+      <g fill="#eef1ff"><circle cx="110" cy="95" r="6" fill="#7c5cff"/><text x="122" y="90">reset password</text>
+      <circle cx="170" cy="140" r="6" fill="#7c5cff"/><text x="182" y="145">can't log in</text>
+      <circle cx="105" cy="130" r="6" fill="#7c5cff"/><text x="40" y="160">forgot login</text>
+      <circle cx="430" cy="100" r="6" fill="#22d3ee"/><text x="442" y="95">refund</text>
+      <circle cx="500" cy="135" r="6" fill="#22d3ee"/><text x="512" y="140">charged twice</text>
+      <circle cx="455" cy="150" r="6" fill="#22d3ee"/><text x="380" y="170">invoice wrong</text>
+      <circle cx="270" cy="280" r="6" fill="#f472b6"/><text x="282" y="275">where is my parcel</text>
+      <circle cx="350" cy="300" r="6" fill="#f472b6"/><text x="362" y="320">delivery late</text></g>
+      <polygon points="185,105 191,119 206,119 194,128 198,142 185,134 172,142 176,128 164,119 179,119" fill="#fbbf24"/>
+      <text x="212" y="122" fill="#fbbf24" font-weight="700">query: "I'm locked out"</text>
+    </svg>
+    <div style="flex:1"><p>An embedding turns text into a list of numbers. <b>Similar meaning → nearby points.</b></p>
+      <p style="margin-top:10px">The gold star lands among the login messages even though it shares <b>no words</b> with them.</p>
+      <p class="muted" style="margin-top:10px;font-size:17px">Real embeddings have hundreds to thousands of dimensions; this is a 2D sketch.</p></div>
+  </div>
+</section>
+<section class="slide ex" data-sec="6 · Inside an LLM" data-title="Example: semantic search">
+  <div class="chip">Example</div>
+  <h2>Semantic search <span class="grad">vs keyword search</span></h2>
+  <div class="pbox st" style="margin-bottom:12px"><span class="lb">USER SEARCHES HELP CENTRE</span>"I can't get into my account"</div>
+  <div class="grid g2 st">
+    <div class="card sm" style="border-color:rgba(251,113,133,.5)"><span class="tag r">KEYWORD MATCH</span><p>Looks for the words "get", "into", "account".</p><ul><li>"Account settings overview" ✔ word match, wrong answer</li><li>"How to reset a forgotten password" ✘ no shared words, missed</li></ul></div>
+    <div class="card sm" style="border-color:rgba(52,211,153,.5)"><span class="tag g">EMBEDDING MATCH</span><p>Compares meaning.</p><ul><li>"How to reset a forgotten password" ✔ ranked #1</li><li>"Two-factor login problems" ✔ ranked #2</li></ul></div>
+  </div>
+  <div class="take st"><b>Why it matters:</b> this is the retrieval step of RAG, coming in a later session.</div>
+</section>
+<section class="slide" data-sec="6 · Inside an LLM" data-title="Transformers and attention">
+  <div class="chip">6 · Inside an LLM</div>
+  <h2>Attention: <span class="grad">every word looks at every other word</span></h2>
+  <div class="st" style="display:flex;justify-content:center;margin-top:6px">
+  <svg width="1100" height="250" viewBox="0 0 1100 250" font-family="Inter,sans-serif">
+    <g fill="none" stroke-linecap="round">
+      <path d="M830 150 C 830 20, 160 20, 160 150" stroke="#fbbf24" stroke-width="7" opacity=".95"/>
+      <path d="M830 150 C 830 60, 600 60, 600 150" stroke="#7c5cff" stroke-width="2.5" opacity=".7"/>
+      <path d="M830 150 C 830 70, 1050 70, 1050 150" stroke="#22d3ee" stroke-width="3.5" opacity=".8"/>
+    </g>
+    <g font-size="24" font-weight="600" fill="#eef1ff" text-anchor="middle">
+      <text x="55" y="190">The</text><text x="160" y="190" fill="#fbbf24" font-weight="800">trophy</text><text x="270" y="190">didn't</text><text x="355" y="190">fit</text><text x="420" y="190">in</text><text x="485" y="190">the</text><text x="600" y="190">suitcase</text><text x="730" y="190">because</text><text x="830" y="190" fill="#fbbf24" font-weight="800">it</text><text x="905" y="190">was</text><text x="975" y="190">too</text><text x="1050" y="190">big</text>
+    </g>
+    <text x="500" y="52" fill="#fbbf24" font-size="16" text-anchor="middle" font-weight="700">strongest link: "it" → "trophy"</text>
+  </svg></div>
+  <div class="grid g3 st" style="margin-top:6px">
+    <div class="card sm"><h3>Parallel</h3><p>Reads all tokens at once, so training scales on GPUs.</p></div>
+    <div class="card sm"><h3>Contextual</h3><p>The same word gets a different meaning depending on its neighbours.</p></div>
+    <div class="card sm"><h3>Stacked</h3><p>Dozens of layers, many attention "heads" each. That's the transformer.</p></div>
+  </div>
+</section>
+<section class="slide ex" data-sec="6 · Inside an LLM" data-title="Example: what does 'it' mean?">
+  <div class="chip">Example</div>
+  <h2>Attention resolves <span class="grad">ambiguity</span></h2>
+  <div class="grid g2 st">
+    <div class="pbox out"><span class="lb">SENTENCE A</span>"The trophy didn't fit in the suitcase because <span class="hl-y">it</span> was too <span class="hl-y">big</span>."
+→ <span class="hl-g">it = the trophy</span></div>
+    <div class="pbox out"><span class="lb">SENTENCE B (one word changed)</span>"The trophy didn't fit in the suitcase because <span class="hl-y">it</span> was too <span class="hl-y">small</span>."
+→ <span class="hl-g">it = the suitcase</span></div>
+  </div>
+  <p class="st" style="margin-top:16px">A rule-based system would need a hand-written rule for each case. The model learned, from text alone, that "big" attaches to the thing that doesn't fit and "small" to the container.</p>
+  <div class="take st"><b>Prompting link:</b> the model weighs <i>all</i> your words. Contradictory or irrelevant text in a prompt pulls attention in the wrong direction.</div>
+</section>
+<section class="slide" data-sec="7 · Making an assistant" data-title="How an LLM is trained">
+  <div class="chip">7 · From model to assistant</div>
+  <h2>Three training stages, <span class="grad">shrinking data, growing care</span></h2>
+  <div class="st">
+    <div class="barrow"><span class="lbl" style="width:210px;font-family:inherit;font-size:18px"><b>1 · Pre-training</b></span><div class="barwrap"><div class="bar" style="width:100%;font-size:15px;padding:5px 12px;font-weight:700;color:#06101f;display:flex;align-items:center">Trillions of tokens of text · learns language + world knowledge</div></div></div>
+    <div class="barrow"><span class="lbl" style="width:210px;font-family:inherit;font-size:18px"><b>2 · Instruction tuning</b></span><div class="barwrap"><div class="bar" style="width:34%;background:#22d3ee;font-size:14px;padding:5px 12px;font-weight:700;color:#06101f;display:flex;align-items:center;white-space:nowrap">Thousands of prompt→answer examples</div></div></div>
+    <div class="barrow"><span class="lbl" style="width:210px;font-family:inherit;font-size:18px"><b>3 · Alignment</b></span><div class="barwrap"><div class="bar" style="width:20%;background:#f472b6;font-size:14px;padding:5px 12px;font-weight:700;color:#06101f;display:flex;align-items:center;white-space:nowrap">Human preferences</div></div></div>
+  </div>
+  <p class="muted st" style="font-size:14px;text-align:right">Bar lengths are illustrative, not to scale.</p>
+  <div class="grid g3 st">
+    <div class="card sm"><span class="tag y">RESULT</span><h3>Base model</h3><p>A powerful autocomplete.</p></div>
+    <div class="card sm"><span class="tag c">RESULT</span><h3>Instruction model</h3><p>Follows tasks you describe.</p></div>
+    <div class="card sm"><span class="tag g">RESULT</span><h3>Assistant</h3><p>Helpful, honest, safer. The one you call via API.</p></div>
+  </div>
+</section>
+<section class="slide ex" data-sec="7 · Making an assistant" data-title="Example: one sample at each stage">
+  <div class="chip">Example</div>
+  <h2>What the model sees <span class="grad">at each stage</span></h2>
+  <div class="grid g3 st">
+    <div><span class="tag y">1 · PRE-TRAINING</span><div class="pbox" style="margin-top:6px;font-size:14px"><span class="lb">RAW TEXT</span>"…the mitochondria is the powerhouse of the"
+<span class="hl-y">→ target: " cell"</span></div></div>
+    <div><span class="tag c">2 · INSTRUCTION TUNING</span><div class="pbox" style="margin-top:6px;font-size:14px"><span class="lb">HUMAN-WRITTEN PAIR</span>User: "Explain DNS in two sentences."
+<span class="hl-b">Ideal: "DNS translates names like example.com into IP addresses…"</span></div></div>
+    <div><span class="tag g">3 · ALIGNMENT</span><div class="pbox" style="margin-top:6px;font-size:14px"><span class="lb">PREFERENCE</span>Prompt: "How do I pick a lock?"
+Answer A: detailed break-in steps ✘
+<span class="hl-g">Answer B: lockpicking as a hobby, legal note ✔</span></div></div>
+  </div>
+  <div class="take st"><b>Takeaway:</b> knowledge comes from stage 1, <i>behaviour</i> from stages 2 and 3. Your prompts steer behaviour; they cannot add knowledge that was never learned.</div>
+</section>
+<section class="slide" data-sec="8 · Working with LLMs" data-title="Context window">
+  <div class="chip">8 · Working with LLMs</div>
+  <h2>Context window: <span class="grad">the model's working memory</span></h2>
+  <p class="st" style="font-size:19px">The model sees only what is inside the window on this call. It has no memory between calls.</p>
+  <div class="st" style="display:flex;border-radius:12px;overflow:hidden;font-size:15px;font-weight:700;text-align:center;margin:18px 0 6px;color:#06101f">
+    <div style="flex:8;background:#a5b4fc;padding:22px 6px">System prompt</div>
+    <div style="flex:30;background:#67e8f9;padding:22px 6px">Chat history</div>
+    <div style="flex:34;background:#fde68a;padding:22px 6px">Documents / retrieved text</div>
+    <div style="flex:8;background:#f9a8d4;padding:22px 6px">Question</div>
+    <div style="flex:20;background:#86efac;padding:22px 6px">Room for the answer</div>
+  </div>
+  <p class="muted st" style="text-align:right;font-size:14px">Everything above must fit in the model's token limit, input and output together.</p>
+  <div class="grid g3 st">
+    <div class="card sm"><h3>Bigger ≠ free</h3><p>More tokens cost more and run slower.</p></div>
+    <div class="card sm"><h3>Lost in the middle</h3><p>Details buried in very long input can be missed. Put key facts at the start or end.</p></div>
+    <div class="card sm"><h3>You manage it</h3><p>Trim, summarise or retrieve; don't paste everything.</p></div>
+  </div>
+</section>
+<section class="slide ex" data-sec="8 · Working with LLMs" data-title="Example: the chatbot that forgot">
+  <div class="chip">Example</div>
+  <h2>Why the chatbot <span class="grad">forgot my name</span></h2>
+  <div class="grid g2 st" style="grid-template-columns:1.2fr 1fr">
+    <div class="pbox" style="font-size:14.5px"><span class="lb">TURN 1 (long ago)</span>User: "I'm Priya, on the Pro plan."
+…
+<span class="lb" style="margin-top:8px">TURN 80</span>User: "Which plan am I on?"
+Bot: <span class="hl-r">"I don't have that information."</span></div>
+    <div class="card sm"><span class="tag y">WHAT HAPPENED</span><p>The app kept sending the full history until it exceeded the limit, then dropped the <b>oldest</b> turns. Turn 1 fell out of the window.</p><span class="tag g" style="margin-top:10px">FIXES</span><ul><li>Summarise older turns</li><li>Pin key facts (name, plan) in the system prompt</li><li>Store facts in a database and retrieve them</li></ul></div>
+  </div>
+  <div class="take st"><b>Remember:</b> the API is stateless. "Memory" is something your code re-sends on every call.</div>
+</section>
+<section class="slide" data-sec="8 · Working with LLMs" data-title="Temperature and top-p">
+  <div class="chip">8 · Working with LLMs</div>
+  <h2>Temperature &amp; top-p: <span class="grad">play with it</span></h2>
+  <p class="st" style="font-size:20px">Prompt: <code>"My favourite programming language is"</code></p>
+  <div class="grid g2 st" style="gap:30px;margin-top:8px">
+    <div><b>Temperature: <span id="tVal">1.0</span></b><input type="range" id="tmp" min="0.1" max="2" step="0.1" value="1" oninput="tempDraw()">
+         <b style="display:block;margin-top:10px">Top-p: <span id="pVal">1.00</span></b><input type="range" id="topp" min="0.1" max="1" step="0.05" value="1" oninput="tempDraw()">
+         <p class="muted" style="margin-top:14px;font-size:17px">Greyed bars are excluded by top-p. Slide temperature to 0.1, then 2.0.</p></div>
+    <div id="tBars"></div>
+  </div>
+  <div class="take st">Facts, extraction, code → <b>low (0–0.3)</b>. Brainstorming, stories → <b>higher (0.7–1.0)</b>.</div>
+</section>
+<section class="slide ex" data-sec="8 · Working with LLMs" data-title="Example: naming a coffee shop">
+  <div class="chip">Example</div>
+  <h2>Same prompt, <span class="grad">different temperature</span></h2>
+  <p class="st" style="font-size:19px">Prompt: "Suggest one name for a coffee shop near a train station."</p>
+  <div class="grid g2 st" style="margin-top:8px">
+    <div class="card sm"><span class="tag c">TEMPERATURE ≈ 0</span><pre style="font-size:15px;margin-top:8px">Run 1: Platform Coffee
+Run 2: Platform Coffee
+Run 3: Platform Coffee</pre><p>Consistent. Good for classification, extraction, tests.</p></div>
+    <div class="card sm"><span class="tag r">TEMPERATURE ≈ 1</span><pre style="font-size:15px;margin-top:8px">Run 1: The Last Carriage Café
+Run 2: Rail &amp; Roast
+Run 3: Brew Line Junction</pre><p>Varied. Good for brainstorming, bad for anything that must repeat.</p></div>
+  </div>
+  <p class="muted st" style="font-size:14px">Illustrative outputs.</p>
+  <div class="take st"><b>Rule:</b> choose temperature by task. Low when there is one right answer, higher when you want options.</div>
+</section>
+<section class="slide" data-sec="9 · Reality check" data-title="Strengths and weak spots">
+  <div class="chip">9 · Reality check</div>
+  <h2>A <span class="grad">jagged</span> skill profile</h2>
+  <div class="grid g2 st" style="gap:30px">
+    <div>
+      <div class="barrow"><span class="lbl" style="width:190px;font-family:inherit;font-size:17px">Summarising text</span><div class="barwrap"><div class="bar" style="width:92%"></div></div></div>
+      <div class="barrow"><span class="lbl" style="width:190px;font-family:inherit;font-size:17px">Drafting &amp; rewriting</span><div class="barwrap"><div class="bar" style="width:90%"></div></div></div>
+      <div class="barrow"><span class="lbl" style="width:190px;font-family:inherit;font-size:17px">Translation</span><div class="barwrap"><div class="bar" style="width:85%"></div></div></div>
+      <div class="barrow"><span class="lbl" style="width:190px;font-family:inherit;font-size:17px">Writing code</span><div class="barwrap"><div class="bar" style="width:80%"></div></div></div>
+      <div class="barrow"><span class="lbl" style="width:190px;font-family:inherit;font-size:17px">Exact arithmetic</span><div class="barwrap"><div class="bar" style="width:40%;background:#fbbf24"></div></div></div>
+      <div class="barrow"><span class="lbl" style="width:190px;font-family:inherit;font-size:17px">Citing real sources</span><div class="barwrap"><div class="bar" style="width:30%;background:#fb7185"></div></div></div>
+      <div class="barrow"><span class="lbl" style="width:190px;font-family:inherit;font-size:17px">Today's news (no tools)</span><div class="barwrap"><div class="bar" style="width:8%;background:#fb7185"></div></div></div>
+      <p class="muted" style="font-size:13px;margin-top:6px">Illustrative profile, not a benchmark.</p></div>
+    <div class="stack">
+      <div class="card sm" style="border-color:rgba(52,211,153,.5)"><span class="tag g">LEAN ON IT FOR</span><p>Language-shaped work with a human reviewer.</p></div>
+      <div class="card sm" style="border-color:rgba(251,191,36,.5)"><span class="tag y">ADD A TOOL FOR</span><p>Maths (calculator), fresh data (search), private data (RAG), actions (APIs).</p></div>
+      <div class="card sm" style="border-color:rgba(251,113,133,.5)"><span class="tag r">NEVER TRUST BLINDLY</span><p>Facts, citations, legal or medical claims.</p></div>
+    </div>
+  </div>
+</section>
+<section class="slide ex" data-sec="9 · Reality check" data-title="Example: easy for us, hard for it">
+  <div class="chip">Example</div>
+  <h2>Surprising <span class="grad">failures</span></h2>
+  <div class="grid g2 st">
+    <div class="pbox bad"><span class="lb">ARITHMETIC</span>"What is 48,372 × 9,614?"
+Model may answer a plausible-looking number that is <span class="hl-r">slightly wrong</span>.
+<span class="hl-g">Fix: let it call a calculator tool.</span></div>
+    <div class="pbox bad"><span class="lb">LETTER COUNTING</span>"How many r's in 'strawberry'?"
+Tokens are chunks, not letters, so counting characters is hard.
+<span class="hl-g">Fix: ask it to spell the word out first, or use code.</span></div>
+  </div>
+  <div class="take st"><b>Pattern:</b> if a task is exact, mechanical and checkable, give it to code. Use the LLM for the language around it.</div>
+</section>
+<section class="slide" data-sec="9 · Reality check" data-title="Hallucination">
+  <div class="chip">9 · Reality check</div>
+  <h2>Hallucination: <span class="grad">fluent, confident, wrong</span></h2>
+  <div class="flow st" style="align-items:stretch">
+    <div class="node">Question<small>about something it doesn't know</small></div><span class="arrow">→</span>
+    <div class="node" style="border-color:#fb7185">Pattern completion<small>"what would a good answer look like?"</small></div><span class="arrow">→</span>
+    <div class="node" style="border-color:#fb7185;background:rgba(251,113,133,.12)">Plausible fake<small>invented fact, name or citation</small></div>
+  </div>
+  <h3 class="st" style="margin-top:20px">Defences, in order of strength</h3>
+  <div class="flow st" style="align-items:stretch">
+    <div class="node">Prompt rules<small>"say I don't know"</small></div><span class="arrow">+</span>
+    <div class="node">Ground in data<small>RAG</small></div><span class="arrow">+</span>
+    <div class="node">Tools<small>search, calculator</small></div><span class="arrow">+</span>
+    <div class="node">Verify<small>checks + citations</small></div><span class="arrow">+</span>
+    <div class="node hl">Human review<small>high stakes</small></div>
+  </div>
+</section>
+<section class="slide ex" data-sec="9 · Reality check" data-title="Example: the invented citation">
+  <div class="chip">Example</div>
+  <h2>Ungrounded vs <span class="grad">grounded</span></h2>
+  <div class="grid g2 st">
+    <div class="pbox bad"><span class="lb">UNGROUNDED</span>User: "What is our refund window?"
+Bot: <span class="hl-r">"Our policy allows refunds within 60 days (Policy 4.2)."</span>
+<span class="hl-r">← sounds official; the company never wrote this</span></div>
+    <div class="pbox out"><span class="lb">GROUNDED</span>System: answer only from &lt;policy&gt;; otherwise say you don't know.
+&lt;policy&gt;Refunds within 30 days of purchase.&lt;/policy&gt;
+Bot: <span class="hl-g">"Refunds are available within 30 days of purchase."</span></div>
+  </div>
+  <div class="take st"><b>Same model, same question.</b> The only difference is the facts and rules supplied in the prompt.</div>
+</section>
+<section class="slide" data-sec="10 · From model to product" data-title="The GenAI application stack">
+  <div class="chip">10 · From model to product</div>
+  <h2>A GenAI product is <span class="grad">more than a model</span></h2>
+  <div class="stack st" style="max-width:900px;margin:0 auto;width:100%">
+    <div class="layer" style="background:linear-gradient(90deg,#7c5cff55,#22d3ee33)"><div>🖥️ Interface &amp; guardrails<br><span>chat UI, input checks, output filters</span></div><span class="tag" style="margin:0">UX + SAFETY</span></div>
+    <div class="layer"><div>🤖 Tools &amp; agents<br><span>call APIs, search, run code, take actions</span></div><span class="tag c" style="margin:0">ACT</span></div>
+    <div class="layer"><div>📚 Knowledge (RAG)<br><span>your documents, retrieved at question time</span></div><span class="tag y" style="margin:0">KNOW</span></div>
+    <div class="layer" style="border-color:#fbbf24;background:rgba(251,191,36,.08)"><div>✍️ Prompts<br><span>instructions, examples, format, constraints. <b>Next deck.</b></span></div><span class="tag y" style="margin:0">STEER</span></div>
+    <div class="layer"><div>🧠 Foundation model (LLM)<br><span>language ability, reasoning, general knowledge</span></div><span class="tag r" style="margin:0">CORE</span></div>
+  </div>
+</section>
+<section class="slide ex" data-sec="10 · From model to product" data-title="Example: an HR assistant, layer by layer">
+  <div class="chip">Example</div>
+  <h2>Building an HR assistant, <span class="grad">layer by layer</span></h2>
+  <table class="tbl st">
+    <tr><th>Layer</th><th>What you add</th><th>Question it now answers</th></tr>
+    <tr><td>LLM only</td><td>Nothing</td><td>"What is a typical notice period?" (generic)</td></tr>
+    <tr><td>+ Prompt</td><td>Role, tone, "be concise, cite sources"</td><td>Same, but in the HR team's voice</td></tr>
+    <tr><td>+ RAG</td><td>Company handbook PDFs</td><td>"What is <i>our</i> notice period?"</td></tr>
+    <tr><td>+ Tools</td><td>HR system API</td><td>"How many leave days do I have left?"</td></tr>
+    <tr><td>+ Guardrails</td><td>Permissions, PII filter, logging</td><td>Safe to roll out company-wide</td></tr>
+  </table>
+  <div class="take st"><b>This is the course roadmap:</b> each following session adds one of these layers.</div>
+</section>
+<section class="slide" data-sec="Close" data-title="Key takeaways" style="justify-content:center"><div class="st"><div class="partlabel">Key takeaways</div>
+<h1 style="font-size:52px;margin:18px 0 24px">LLMs predict tokens.<br><span class="grad">You steer them with prompts.</span></h1><ul style="max-width:1000px"><li><b>GenAI creates content</b>; classic ML/DL labels or predicts</li><li><b>Tokens, context and sampling</b> explain cost, memory and variability</li><li><b>Hallucination is built in</b>: ground, use tools, and verify</li></ul><p style="margin-top:34px;font-size:28px;font-weight:800">Next deck: <span class="grad">Prompt engineering.</span></p></div></section>
+
+<div id="bar"></div>
+<div id="foot"><span id="fSec"></span><span id="fNum"></span></div>
+</div>
+<div id="overview"></div>
+<div id="hint">← → navigate · O overview · F fullscreen</div>
+
+<script>
+/* ---------- navigation ---------- */
+const slides=[...document.querySelectorAll('.slide')];
+let cur=0;
+const stage=document.getElementById('stage');
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);stage.style.transform=`translate(-50%,-50%) scale(${s})`}
+addEventListener('resize',fit);fit();
+function go(n){
+  cur=Math.max(0,Math.min(slides.length-1,n));
+  slides.forEach((s,i)=>s.classList.toggle('active',i===cur));
+  document.getElementById('bar').style.width=((cur+1)/slides.length*100)+'%';
+  document.getElementById('fSec').textContent=slides[cur].dataset.sec;
+  document.getElementById('fNum').textContent=(cur+1)+' / '+slides.length;
+  history.replaceState(null,'','#'+(cur+1));
+}
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'&&e.target.type!=='range')return;
+  if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();go(cur+1)}
+  else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();go(cur-1)}
+  else if(e.key==='Home')go(0);
+  else if(e.key==='End')go(slides.length-1);
+  else if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+  else if(e.key==='o'||e.key==='O')toggleOv();
+  else if(e.key==='Escape')document.getElementById('overview').classList.remove('on');
+});
+addEventListener('click',e=>{
+  if(e.target.closest('button,input,#overview,pre,.qrow'))return;
+  go(e.clientX>innerWidth/2?cur+1:cur-1);
+});
+let tx=0;addEventListener('touchstart',e=>tx=e.touches[0].clientX);
+addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>50)go(d<0?cur+1:cur-1)});
+function toggleOv(){
+  const o=document.getElementById('overview');
+  if(!o.classList.toggle('on'))return;
+  o.innerHTML=slides.map((s,i)=>`<div onclick="go(${i});toggleOv()"><small>${i+1} · ${s.dataset.sec}</small>${s.dataset.title}</div>`).join('');
+}
+
+/* ---------- tokenizer demo (simplified) ---------- */
+const palette=['#a5b4fc','#67e8f9','#f9a8d4','#fde68a','#86efac','#fdba74'];
+function hash(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))%50000;return h+100}
+function tokenize(){
+  const t=document.getElementById('tokIn').value;
+  const parts=t.match(/\s?[A-Za-z]+|\s?\d+|\s?[^\sA-Za-z\d]/g)||[];
+  const toks=[];
+  parts.forEach(p=>{
+    const lead=p.startsWith(' ')?' ':'';let w=p.trim();
+    if(/^[A-Za-z]+$/.test(w)&&w.length>6){
+      toks.push(lead+w.slice(0,5));
+      for(let i=5;i<w.length;i+=4)toks.push(w.slice(i,i+4));
+    }else toks.push(p);
+  });
+  document.getElementById('tokOut').innerHTML=toks.map((k,i)=>`<span class="tok" style="background:${palette[i%palette.length]}">${k.replace(/ /g,'·')||'·'}</span>`).join('');
+  document.getElementById('tokIds').textContent='['+toks.map(hash).join(', ')+']';
+  document.getElementById('tokStat').textContent=`${t.length} characters → ${toks.length} tokens`;
+}
+tokenize();
+
+/* ---------- next-token demo ---------- */
+const NT={
+ "The capital of France is":[[" Paris",.86],[" a",.04],[" located",.03],[" the",.03],[" known",.02],[" Lyon",.02]],
+ "The capital of France is Paris":[["."  ,.62],[","  ,.2],[" and",.08],["!",.04],[" which",.04],[" city",.02]],
+ "The capital of France is Paris.":[[" It",.35],[" The",.25],[" Paris",.15],["\n",.12],[" France",.08],[" Located",.05]]
+};
+let ntBase="The capital of France is",ntCur=ntBase;
+function ntDraw(){
+  document.getElementById('ntText').innerHTML=ntCur.replace(ntBase,'<span class="muted">'+ntBase+'</span>')+'<span class="pulse" style="display:inline-block;width:12px;height:30px;background:var(--b);vertical-align:middle;margin-left:4px"></span>';
+  const opts=NT[ntCur]||[[" …",1]];
+  document.getElementById('ntBars').innerHTML=opts.map(([t,p])=>`<div class="barrow"><span class="lbl">${t.replace(/ /g,'·').replace('\n','⏎')}</span><div class="barwrap"><div class="bar" style="width:${p*100}%"></div></div><span class="val">${(p*100).toFixed(0)}%</span></div>`).join('');
+}
+function ntSample(){
+  const opts=NT[ntCur];if(!opts){return}
+  let r=Math.random(),acc=0,pick=opts[0][0];
+  for(const [t,p] of opts){acc+=p;if(r<=acc){pick=t;break}}
+  ntCur+=pick;ntDraw();
+}
+function ntReset(){ntCur=ntBase;ntDraw()}
+ntDraw();
+
+/* ---------- temperature / top-p demo ---------- */
+const langs=[["Python",3.2],["JavaScript",2.4],["Rust",1.8],["Go",1.5],["Java",1.2],["Haskell",0.2]];
+function tempDraw(){
+  const T=+document.getElementById('tmp').value,P=+document.getElementById('topp').value;
+  document.getElementById('tVal').textContent=T.toFixed(1);
+  document.getElementById('pVal').textContent=P.toFixed(2);
+  const ex=langs.map(([n,l])=>[n,Math.exp(l/T)]);
+  const sum=ex.reduce((a,b)=>a+b[1],0);
+  const pr=ex.map(([n,e])=>[n,e/sum]).sort((a,b)=>b[1]-a[1]);
+  let acc=0;const keep=new Set();
+  for(const [n,p] of pr){ if(acc<P||keep.size===0){keep.add(n)} acc+=p; }
+  const kSum=pr.filter(([n])=>keep.has(n)).reduce((a,b)=>a+b[1],0);
+  document.getElementById('tBars').innerHTML=pr.map(([n,p])=>{
+    const k=keep.has(n),v=k?p/kSum:0;
+    return `<div class="barrow"><span class="lbl" style="width:120px;${k?'':'opacity:.35'}">${n}</span><div class="barwrap"><div class="bar" style="width:${(k?v:p)*100}%;${k?'':'background:#3a4372'}"></div></div><span class="val">${((k?v:p)*100).toFixed(0)}%</span></div>`;
+  }).join('');
+}
+tempDraw();
+
+
+/* ---------- init ---------- */
+go((parseInt(location.hash.slice(1))||1)-1);
+</script>
+</body>
+</html>
